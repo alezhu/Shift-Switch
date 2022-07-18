@@ -36,3 +36,4 @@
 **/Debug/
 **/Release/
 *.aps
+/publish/
