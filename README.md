@@ -1,5 +1,5 @@
 # Shift Switch
-Windows keyboard layout switcher between English and Russian by left and rigth Shift key
+Windows keyboard layout switcher between English and Russian by left and right Shift key
 
 
 Switch to English by press left Shift key. Switch to Russian by press right Shift key.
