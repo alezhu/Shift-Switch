@@ -4,6 +4,8 @@
 #include <Shlwapi.h>
 #include <map>
 #include <thread>
+#include <string>
+#include <sstream>
 #include "../ShiftSwitchUI/CMailslot.h"
 
 HMODULE _hModule = nullptr;
@@ -116,7 +118,7 @@ void ActivateLayoutEx(const _In_ HKL hkl, const HWND hwnd) {
 		Sleep(100);
 		PostMessageW(hwnd, WM_INPUTLANGCHANGEREQUEST, INPUTLANGCHANGE_SYSCHARSET, LPARAM(hkl));
 		//PostMessageW(HWND_BROADCAST, WM_INPUTLANGCHANGE, 0, LPARAM(hkl));
-	};
+		};
 	std::thread(lambda).detach();
 
 }
