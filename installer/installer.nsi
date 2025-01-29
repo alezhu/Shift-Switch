@@ -4,7 +4,7 @@ XPStyle on
 !include "x64.nsh"
 !include "nsProcess.nsh"
 
-!define VERSION "1.0.0.0"
+!define VERSION "1.0.1"
 !define DISPLAY_NAME "Shift Switch"
 !define EXE32 "ShiftSwitchUI.exe"
 !define EXE64 "ShiftSwitchUI64.exe"
