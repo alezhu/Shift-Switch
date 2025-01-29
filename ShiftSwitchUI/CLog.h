@@ -12,4 +12,8 @@ protected:
 	void addMsgToListBox(HWND hWND, LPCWSTR message);
 	std::vector<std::wstring> m_tempLog;
 	HWND m_Hwnd = nullptr;
+	std::wstring m_tempFile;
+public:
+
+	CLog();
 };
