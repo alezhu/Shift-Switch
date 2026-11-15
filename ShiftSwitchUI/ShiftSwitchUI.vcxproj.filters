@@ -45,18 +45,33 @@
     <ClInclude Include="CApp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CHandle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CMutex.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CLog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LogOutput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CrashReporter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HookController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IconHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AppSettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StateCoordinator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ShiftSwitchUI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HookController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
@@ -68,19 +83,13 @@
     <ClCompile Include="CProcessMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CrashReporter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="CProcessChild.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CProcessBase.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CMutex.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CMailslot.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CHandle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CApp.cpp">
@@ -99,8 +108,5 @@
     <Image Include="app.ico">
       <Filter>Resource Files</Filter>
     </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
 </Project>

@@ -4,6 +4,9 @@
 #include "CProcessChild.h"
 #include "CProcessMain.h"
 
+#include <commctrl.h>
+#include <cwchar>
+
 
 CApp& CApp::getInstance()
 {
@@ -30,6 +33,9 @@ int CApp::start(HINSTANCE hInstance, LPWSTR lpCmdLine)
 	m_hInstance = hInstance;
 	m_lpCmdLine = lpCmdLine;
 
+	INITCOMMONCONTROLSEX icex = { sizeof(icex), ICC_LISTVIEW_CLASSES | ICC_STANDARD_CLASSES | ICC_HOTKEY_CLASS | ICC_LINK_CLASS };
+	InitCommonControlsEx(&icex);
+
 	auto mutexName = getMutexName();
 	m_mutex = std::make_unique<CMutex>(nullptr, false, mutexName.c_str());
 	if (!m_mutex->isValid() || ::GetLastError() == ERROR_ALREADY_EXISTS)
@@ -41,7 +47,7 @@ int CApp::start(HINSTANCE hInstance, LPWSTR lpCmdLine)
 	if (wcslen(lpCmdLine) > 0)
 	{
 		//May be Child process
-		m_hwndParentProcess = HWND(_wtol(lpCmdLine));
+		m_hwndParentProcess = HWND(std::wcstoull(lpCmdLine, nullptr, 10));
 		m_process = std::make_unique<CProcessChild>();
 		//#ifdef _DEBUG
 		//		{
