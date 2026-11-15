@@ -38,6 +38,10 @@ ShiftSwitch was created to solve specific flaws in existing keyboard layout swit
 ## Changelog
 
 - `CHANGELOG.md` is maintained in the Keep a Changelog format.
+- Write entries from the end user's perspective rather than the developer's:
+  describe user-visible behavior, stability, or packaging changes; avoid
+  internal technical details, function/variable names, compiler warning codes,
+  or implementation mechanics.
 - Every commit that changes behaviour, build output or the public interface
   must update `CHANGELOG.md` in the same commit.
 - Unreleased work goes under `## [Unreleased]` in the matching subsection:
