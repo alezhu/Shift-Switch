@@ -26,10 +26,10 @@ jobs:
         platform: [x86, x64]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
+        uses: microsoft/setup-msbuild@v3
 
       - name: Setup VS 2022
         uses: ilammy/msvc-dev-cmd@v1
@@ -52,7 +52,7 @@ jobs:
         run: .\${{ matrix.platform == 'x64' && 'x64' || 'Win32' }}\${{ matrix.config }}\ShiftSwitchTests.exe
 
       - name: Upload binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.config }}-${{ matrix.platform }}
           path: |
@@ -71,10 +71,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
+        uses: microsoft/setup-msbuild@v3
 
       - name: Setup VS 2022 (x64)
         uses: ilammy/msvc-dev-cmd@v1
@@ -99,7 +99,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Validate version tag
         run: |
@@ -124,13 +124,13 @@ jobs:
           Get-Content release_notes.md
 
       - name: Download x64 release binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: Release-x64
           path: artifacts/x64
 
       - name: Download x86 release binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: Release-x86
           path: artifacts/x86
@@ -161,14 +161,14 @@ jobs:
           }
 
       - name: Upload installer artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: installer
           path: installer/Shift-Switch-Installer_*.exe
           retention-days: 30
 
       - name: Upload release symbols
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: symbols-release
           path: |
