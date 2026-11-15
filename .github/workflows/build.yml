@@ -145,10 +145,17 @@ jobs:
           Copy-Item artifacts/x86/*.exe,artifacts/x86/*.dll Release/ -ErrorAction SilentlyContinue
           Get-ChildItem bin/Release
 
-      - name: Install NSIS
+      - name: Install NSIS and plugins
         run: |
           choco install nsis -y --no-progress
-          "C:\Program Files (x86)\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          $nsisDir = "C:\Program Files (x86)\NSIS"
+          if (Test-Path $nsisDir) {
+            $nsisDir | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/systempal/nsis-plugin-nsprocess/main/include/nsProcess.nsh" -OutFile "$nsisDir\Include\nsProcess.nsh"
+            New-Item -ItemType Directory -Force -Path "$nsisDir\Plugins\x86-unicode", "$nsisDir\Plugins\x86-ansi" | Out-Null
+            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/systempal/nsis-plugin-nsprocess/main/dist/x86-unicode/nsProcess.dll" -OutFile "$nsisDir\Plugins\x86-unicode\nsProcess.dll"
+            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/systempal/nsis-plugin-nsprocess/main/dist/x86-ansi/nsProcess.dll" -OutFile "$nsisDir\Plugins\x86-ansi\nsProcess.dll"
+          }
 
       - name: Build NSIS installer
         run: |
