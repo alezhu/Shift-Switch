@@ -364,8 +364,8 @@ namespace
 		}
 
 		// Process parent messages to receive WMAPP_SET_CHILD_PROCESS_HWND
-		const DWORD startTime = GetTickCount();
-		while (!parentCtx.childRegistered.load(std::memory_order_acquire) && GetTickCount() - startTime < 3000)
+		const ULONGLONG startTime = GetTickCount64();
+		while (!parentCtx.childRegistered.load(std::memory_order_acquire) && GetTickCount64() - startTime < 3000)
 		{
 			MSG msg;
 			if (PeekMessageW(&msg, parentHwnd, 0, 0, PM_REMOVE))
@@ -568,8 +568,8 @@ namespace
 		});
 
 		// Wait for child process to register its HWND via WMAPP_SET_CHILD_PROCESS_HWND
-		const DWORD startTime = GetTickCount();
-		while (!parentCtx.childRegistered.load(std::memory_order_acquire) && GetTickCount() - startTime < 5000)
+		const ULONGLONG startTime = GetTickCount64();
+		while (!parentCtx.childRegistered.load(std::memory_order_acquire) && GetTickCount64() - startTime < 5000)
 		{
 			MSG msg;
 			if (PeekMessageW(&msg, parentHwnd, 0, 0, PM_REMOVE))
@@ -584,6 +584,10 @@ namespace
 		const HWND childHwnd = parentCtx.childHwnd;
 		CHECK_TRUE(childHwnd != nullptr);
 		CHECK_TRUE(::IsWindow(childHwnd));
+		if (childHwnd == nullptr)
+		{
+			return;
+		}
 
 		// Verify child HWND belongs to the child process PID
 		DWORD childProcId = 0;
@@ -660,6 +664,10 @@ namespace
 			0, 0, 0, 0, 0,
 			nullptr, nullptr, hInst, &parentCtx);
 		CHECK_TRUE(parentHwnd != nullptr);
+		if (parentHwnd == nullptr)
+		{
+			return;
+		}
 
 		wchar_t exePath[MAX_PATH] = L"";
 		GetModuleFileNameW(nullptr, exePath, MAX_PATH);
@@ -697,8 +705,8 @@ namespace
 		});
 
 		// Wait for registration
-		const DWORD startTime = GetTickCount();
-		while (!parentCtx.childRegistered.load(std::memory_order_acquire) && GetTickCount() - startTime < 5000)
+		const ULONGLONG startTime = GetTickCount64();
+		while (!parentCtx.childRegistered.load(std::memory_order_acquire) && GetTickCount64() - startTime < 5000)
 		{
 			MSG msg;
 			if (PeekMessageW(&msg, parentHwnd, 0, 0, PM_REMOVE))
@@ -712,8 +720,11 @@ namespace
 		CHECK_TRUE(parentCtx.childRegistered.load());
 
 		// Abruptly destroy parent window to simulate parent crash / sudden termination
-		DestroyWindow(parentHwnd);
-		parentHwnd = nullptr;
+		if (parentHwnd != nullptr)
+		{
+			DestroyWindow(parentHwnd);
+			parentHwnd = nullptr;
+		}
 
 		// Child worker's idle loop checks ::IsWindow(parentHwnd). When gone, child destroys window and exits!
 		const DWORD waitRes = WaitForSingleObject(childProc, 5000);
@@ -831,8 +842,8 @@ namespace
 #endif
 
 		// Wait for registration
-		const DWORD startTime = GetTickCount();
-		while (!parentCtx.childRegistered.load(std::memory_order_acquire) && GetTickCount() - startTime < 5000)
+		const ULONGLONG startTime = GetTickCount64();
+		while (!parentCtx.childRegistered.load(std::memory_order_acquire) && GetTickCount64() - startTime < 5000)
 		{
 			MSG msg;
 			if (PeekMessageW(&msg, parentHwnd, 0, 0, PM_REMOVE))
@@ -847,6 +858,10 @@ namespace
 		const HWND childHwnd = parentCtx.childHwnd;
 		CHECK_TRUE(childHwnd != nullptr);
 		CHECK_TRUE(::IsWindow(childHwnd));
+		if (childHwnd == nullptr)
+		{
+			return;
+		}
 
 		// Cross-bitness Activate
 		DWORD_PTR activateResult = 0;

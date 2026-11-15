@@ -50,5 +50,5 @@ private:
 	const EXCLUSIONS_SHARED* m_shared = nullptr;
 	LONG m_version = 0;
 	bool m_hasVersion = false;
-	DWORD m_lastMapAttempt = 0;
+	ULONGLONG m_lastMapAttempt = 0;
 };

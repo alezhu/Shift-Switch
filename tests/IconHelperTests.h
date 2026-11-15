@@ -62,39 +62,47 @@ inline void runIconHelperTests()
 		CHECK_TRUE(ii.hbmColor != nullptr);
 		CHECK_TRUE(ii.hbmMask != nullptr);
 
-		BITMAP bm = {};
-		GetObject(ii.hbmColor, sizeof(bm), &bm);
-		CHECK_EQUAL(bm.bmWidth, 16);
-		CHECK_EQUAL(bm.bmHeight, 16);
-		CHECK_EQUAL(bm.bmBitsPixel, 32);
-
-		BITMAPINFO bmi = {};
-		bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-		bmi.bmiHeader.biWidth = bm.bmWidth;
-		bmi.bmiHeader.biHeight = bm.bmHeight;
-		bmi.bmiHeader.biPlanes = 1;
-		bmi.bmiHeader.biBitCount = 32;
-		bmi.bmiHeader.biCompression = BI_RGB;
-
-		std::vector<RGBQUAD> pixels(static_cast<size_t>(bm.bmWidth) * bm.bmHeight);
-		HDC hdc = GetDC(nullptr);
-		GetDIBits(hdc, ii.hbmColor, 0, bm.bmHeight, pixels.data(), &bmi, DIB_RGB_COLORS);
-		ReleaseDC(nullptr, hdc);
-
-		BYTE maxR = 0, maxA = 0;
-		for (const auto& p : pixels)
+		if (ii.hbmColor != nullptr && ii.hbmMask != nullptr)
 		{
-			CHECK_EQUAL(p.rgbRed, p.rgbGreen);
-			CHECK_EQUAL(p.rgbGreen, p.rgbBlue);
-			if (p.rgbRed > maxR) maxR = p.rgbRed;
-			if (p.rgbReserved > maxA) maxA = p.rgbReserved;
-		}
-		std::printf("  Grayscale icon verified: maxR=%u (dimmed <= 120), maxAlpha=%u (scaled <= 170)\n", maxR, maxA);
-		CHECK_TRUE(maxR <= 120);
-		CHECK_TRUE(maxA <= 170);
+			BITMAP bm = {};
+			GetObject(ii.hbmColor, sizeof(bm), &bm);
+			CHECK_EQUAL(bm.bmWidth, 16);
+			CHECK_EQUAL(bm.bmHeight, 16);
+			CHECK_EQUAL(bm.bmBitsPixel, 32);
 
-		DeleteObject(ii.hbmColor);
-		DeleteObject(ii.hbmMask);
+			BITMAPINFO bmi = {};
+			bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+			bmi.bmiHeader.biWidth = bm.bmWidth;
+			bmi.bmiHeader.biHeight = bm.bmHeight;
+			bmi.bmiHeader.biPlanes = 1;
+			bmi.bmiHeader.biBitCount = 32;
+			bmi.bmiHeader.biCompression = BI_RGB;
+
+			std::vector<RGBQUAD> pixels(static_cast<size_t>(bm.bmWidth) * bm.bmHeight);
+			HDC hdc = GetDC(nullptr);
+			GetDIBits(hdc, ii.hbmColor, 0, bm.bmHeight, pixels.data(), &bmi, DIB_RGB_COLORS);
+			ReleaseDC(nullptr, hdc);
+
+			BYTE maxR = 0, maxA = 0;
+			for (const auto& p : pixels)
+			{
+				CHECK_EQUAL(p.rgbRed, p.rgbGreen);
+				CHECK_EQUAL(p.rgbGreen, p.rgbBlue);
+				if (p.rgbRed > maxR) maxR = p.rgbRed;
+				if (p.rgbReserved > maxA) maxA = p.rgbReserved;
+			}
+			std::printf("  Grayscale icon verified: maxR=%u (dimmed <= 120), maxAlpha=%u (scaled <= 170)\n", maxR, maxA);
+			CHECK_TRUE(maxR <= 120);
+			CHECK_TRUE(maxA <= 170);
+
+			DeleteObject(ii.hbmColor);
+			DeleteObject(ii.hbmMask);
+		}
+		else
+		{
+			if (ii.hbmColor != nullptr) DeleteObject(ii.hbmColor);
+			if (ii.hbmMask != nullptr) DeleteObject(ii.hbmMask);
+		}
 		DestroyIcon(hGrayIcon);
 	}
 

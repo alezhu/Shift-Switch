@@ -146,8 +146,11 @@ static void scopedHookMoveAndRelease()
 	CHECK(hook1.get() == dummy);
 
 	ScopedHook hook2(std::move(hook1));
+#pragma warning(push)
+#pragma warning(disable: 26800) // Unit test explicitly verifies moved-from object state
 	CHECK(!hook1);
 	CHECK(hook1.get() == nullptr);
+#pragma warning(pop)
 	CHECK(hook2);
 	CHECK(hook2.get() == dummy);
 
@@ -168,8 +171,11 @@ static void scopedHKeyMoveAndRelease()
 	CHECK(key1.get() == dummy);
 
 	ScopedHKey key2(std::move(key1));
+#pragma warning(push)
+#pragma warning(disable: 26800) // Unit test explicitly verifies moved-from object state
 	CHECK(!key1);
 	CHECK(key1.get() == nullptr);
+#pragma warning(pop)
 	CHECK(key2);
 	CHECK(key2.get() == dummy);
 

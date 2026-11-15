@@ -149,6 +149,7 @@ bool CProcessMain::createChildProcess()
 
 	STARTUPINFOW startupInfo = { sizeof(STARTUPINFOW) };
 	PROCESS_INFORMATION processInfo = {};
+#pragma warning(suppress: 6335) // Ownership of processInfo.hProcess is transferred to m_childProcessInfo and closed in cleanup
 	if (::CreateProcessW(
 		nullptr, //path,
 		cmdLine.data(), //hwndStr,

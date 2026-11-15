@@ -32,7 +32,7 @@ static DWORD WINAPI SwitchLayoutWorkItem(LPVOID param) {
 	return 0;
 }
 
-void ActivateLayoutEx(const _In_ HKL hkl, const HWND hwnd) {
+void ActivateLayoutEx(HKL hkl, HWND hwnd) {
 	auto task = std::make_unique<SWITCH_LAYOUT_TASK>(SWITCH_LAYOUT_TASK{ hkl, hwnd });
 	if (QueueUserWorkItem(SwitchLayoutWorkItem, task.get(), WT_EXECUTEDEFAULT)) {
 		task.release();
@@ -55,7 +55,7 @@ HWND getInputWindow(const HOOK_CONTEXT& ctx) {
 	return ctx.inputHWND;
 }
 
-void ActivateLayout(const _In_ HKL hkl, const HOOK_CONTEXT& ctx) {
+void ActivateLayout(HKL hkl, const HOOK_CONTEXT& ctx) {
 	if (ctx.lowLevel)
 	{
 		PostMessageW(getInputWindow(ctx), WM_INPUTLANGCHANGEREQUEST, 0, reinterpret_cast<LPARAM>(hkl));

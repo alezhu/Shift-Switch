@@ -163,7 +163,7 @@ bool CExclusionsReader::Map()
 
 	// The section appears when the UI process starts. Retry at most once per
 	// second, so a missing section does not cost a syscall per key press.
-	const DWORD now = GetTickCount();
+	const ULONGLONG now = GetTickCount64();
 	if (m_lastMapAttempt != 0 && now - m_lastMapAttempt < 1000)
 		return false;
 	m_lastMapAttempt = now != 0 ? now : 1;

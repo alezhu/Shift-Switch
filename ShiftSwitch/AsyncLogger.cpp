@@ -45,7 +45,7 @@ static std::atomic<bool> g_logThreadRunning{false};
 
 void LogSwitchAsync(const wchar_t* wsSwitch)
 {
-	wchar_t msg[LOG_ENTRY_MAX];
+	wchar_t msg[LOG_ENTRY_MAX] = {};
 	wcscpy_s(msg, g_dllPath);
 	wcscat_s(msg, L" : ");
 #ifdef _WIN64
@@ -54,7 +54,9 @@ void LogSwitchAsync(const wchar_t* wsSwitch)
 	wcscat_s(msg, L"x32");
 #endif
 	wcscat_s(msg, L" : ");
-	wcscat_s(msg, wsSwitch);
+	if (wsSwitch != nullptr) {
+		wcscat_s(msg, wsSwitch);
+	}
 
 	int head = g_logHead.load(std::memory_order_relaxed);
 	int nextHead = (head + 1) & (LOG_BUFFER_SIZE - 1);
