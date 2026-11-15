@@ -63,16 +63,13 @@ ShiftSwitch was created to solve specific flaws in existing keyboard layout swit
 - Bump `PATCH` when the release contains only fixes.
 - Bump `MINOR` when functionality is added or changed.
 - Bump `MAJOR` only on an explicit instruction from the user.
+- `VERSION` is the single source of truth for the project version (e.g. `1.1.0`).
+  All build systems (MSBuild, CMake, NSIS installer, resource scripts) derive their
+  version definitions automatically from this file.
 - Update every place below in the same release commit:
-  - `ShiftSwitch/ShiftSwitch.rc`: `FILEVERSION`, `PRODUCTVERSION`,
-    `FileVersion` and `ProductVersion` of the hook DLL.
-  - `ShiftSwitchUI/ShiftSwitchUI.rc`: the same four values in both the x86 and
-    the x64 version blocks. The file is UTF-16; preserve its encoding.
-  - `installer/installer.nsi`: the `VERSION` define.
+  - `VERSION`: the single-line version string (`MAJOR.MINOR.PATCH`).
   - `CHANGELOG.md`: the new `## [<version>] - <YYYY-MM-DD>` section.
   - The `v<version>` tag on the release commit.
-- In the `.rc` files write the numeric fields with three numbers and the string
-  fields with dots: `FILEVERSION 1,0,1` and `VALUE "FileVersion", "1.0.1"`.
 - `ShiftSwitchUI2` is archived in `ShiftSwitch-Legacy.sln`, so its version resource is not updated on
   release.
 

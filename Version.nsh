@@ -1,5 +1,13 @@
-!define VERSION_MAJOR 1
-!define VERSION_MINOR 1
-!define VERSION_PATCH 0
-!define VERSION_STRING "1.1.0"
-!define VERSION_COMMA "1,1,0"
+; Automatically extracted from VERSION file (single source of truth)
+!if /FILEEXISTS "VERSION"
+  !define _VERSION_FILE "VERSION"
+!else if /FILEEXISTS "..\VERSION"
+  !define _VERSION_FILE "..\VERSION"
+!else
+  !error "VERSION file not found"
+!endif
+
+!searchparse /file "${_VERSION_FILE}" "" VERSION_MAJOR "." VERSION_MINOR "." VERSION_PATCH
+!define VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"
+!define VERSION_COMMA "${VERSION_MAJOR},${VERSION_MINOR},${VERSION_PATCH}"
+!undef _VERSION_FILE

@@ -1,20 +1,11 @@
 cmake_minimum_required(VERSION 3.20)
 
-# Extract version from Version.props if present
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Version.props")
-    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/Version.props" VERSION_PROPS_CONTENT)
-    string(REGEX MATCH "<VersionMajor>([0-9]+)</VersionMajor>" _ "${VERSION_PROPS_CONTENT}")
-    set(PARSED_VER_MAJOR ${CMAKE_MATCH_1})
-    string(REGEX MATCH "<VersionMinor>([0-9]+)</VersionMinor>" _ "${VERSION_PROPS_CONTENT}")
-    set(PARSED_VER_MINOR ${CMAKE_MATCH_1})
-    string(REGEX MATCH "<VersionPatch>([0-9]+)</VersionPatch>" _ "${VERSION_PROPS_CONTENT}")
-    set(PARSED_VER_PATCH ${CMAKE_MATCH_1})
-    set(PARSED_VERSION "${PARSED_VER_MAJOR}.${PARSED_VER_MINOR}.${PARSED_VER_PATCH}")
+# Extract version from VERSION file (single source of truth)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION")
+    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" RAW_VERSION)
+    string(STRIP "${RAW_VERSION}" PARSED_VERSION)
 else()
-    set(PARSED_VER_MAJOR 1)
-    set(PARSED_VER_MINOR 1)
-    set(PARSED_VER_PATCH 0)
-    set(PARSED_VERSION "1.1.0")
+    message(FATAL_ERROR "VERSION file not found in ${CMAKE_CURRENT_SOURCE_DIR}")
 endif()
 
 project(ShiftSwitch

@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!-- Single source of truth for version -->
+  <!-- Version is read from the single source of truth: VERSION -->
   <PropertyGroup>
-    <VersionMajor>1</VersionMajor>
-    <VersionMinor>1</VersionMinor>
-    <VersionPatch>0</VersionPatch>
-    <VersionString>1.1.0</VersionString>
-    <VersionStringComma>1,1,0</VersionStringComma>
+    <_RawVersion Condition="Exists('$(MSBuildThisFileDirectory)VERSION')">$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)VERSION').Trim())</_RawVersion>
+    <_RawVersion Condition="'$(_RawVersion)' == ''">0.0.0</_RawVersion>
+    <VersionMajor>$(_RawVersion.Split('.')[0])</VersionMajor>
+    <VersionMinor>$(_RawVersion.Split('.')[1])</VersionMinor>
+    <VersionPatch>$(_RawVersion.Split('.')[2])</VersionPatch>
+    <VersionString>$(_RawVersion)</VersionString>
+    <VersionStringComma>$(VersionMajor),$(VersionMinor),$(VersionPatch)</VersionStringComma>
     <ProductName>Shift Switch</ProductName>
     <CompanyName>Alezhu</CompanyName>
     <Copyright>Copyright (C) 2025</Copyright>
