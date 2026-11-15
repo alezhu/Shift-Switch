@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Full CMake build system support alongside Visual Studio solutions, including presets and build script.
+
 ## [1.0.1] - 2025-01-29
 
 ### Added
