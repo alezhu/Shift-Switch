@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <assemblyIdentity type="win32" name="ShiftSwitch" version="1.0.0.0" />
+  
+  <description>ShiftSwitch - Keyboard Layout Switcher</description>
+  
+  <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
+    <application>
+      <supportedOS Id="{e2011457-1a33-4d8c-8c82-3f834ee540c8}" />
+    </application>
+  </compatibility>
+</assembly>
