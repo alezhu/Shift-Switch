@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Single source of truth for version -->
+  <PropertyGroup>
+    <VersionMajor>1</VersionMajor>
+    <VersionMinor>0</VersionMinor>
+    <VersionPatch>1</VersionPatch>
+    <VersionString>1.0.1</VersionString>
+    <VersionStringComma>1,0,1</VersionStringComma>
+    <ProductName>Shift Switch</ProductName>
+    <CompanyName>Alezhu</CompanyName>
+    <Copyright>Copyright (C) 2025</Copyright>
+  </PropertyGroup>
+</Project>

@@ -2,6 +2,13 @@
 //
 #include "resource.h"
 
+// Build the version string from the numeric macros of Version.props. The
+// project file used to pass VERSION_STRING as a quoted define, which rc.exe
+// expanded to an empty string, so FileVersion and ProductVersion were blank.
+#define VER_STR_(x) #x
+#define VER_STR(x) VER_STR_(x)
+#define VERSION_STRING VER_STR(VERSION_MAJOR) "." VER_STR(VERSION_MINOR) "." VER_STR(VERSION_PATCH)
+
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -51,8 +58,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ FILEVERSION VERSION_MAJOR,VERSION_MINOR,VERSION_PATCH,0
+ PRODUCTVERSION VERSION_MAJOR,VERSION_MINOR,VERSION_PATCH,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -69,12 +76,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Alezhu"
             VALUE "FileDescription", "ShiftSwitch"
-            VALUE "FileVersion", "1.0.0.0"
+            VALUE "FileVersion", VERSION_STRING
             VALUE "InternalName", "ShiftSwitch.dll"
             VALUE "LegalCopyright", "Copyright (C) 2022 by AleZhu"
             VALUE "OriginalFilename", "ShiftSwitch.dll"
             VALUE "ProductName", "Shift Switch"
-            VALUE "ProductVersion", "1.0.0.0"
+            VALUE "ProductVersion", VERSION_STRING
         END
     END
     BLOCK "VarFileInfo"
