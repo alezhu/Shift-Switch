@@ -33,7 +33,15 @@
 
 /.vs/
 /packages/
+/bin/
+/obj/
+/lib/
 **/Debug/
 **/Release/
 *.aps
 /publish/
+/build/
+/build*/
+/out/
+CMakeUserPresets.json
+/IMPROVEMENT_PLAN.md
