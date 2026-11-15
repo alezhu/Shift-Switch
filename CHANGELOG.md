@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-16
+
 ### Added
 
 - Settings dialog to choose target keyboard layouts for Left Shift and Right Shift.
@@ -52,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dual 32-bit and 64-bit hook DLL injection for foreground windows.
 - System tray application with Activate and Deactivate commands.
 
-[Unreleased]: https://github.com/alezhu/Shift-Switch/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/alezhu/Shift-Switch/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/alezhu/Shift-Switch/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/alezhu/Shift-Switch/compare/v1.0.0.0...v1.0.1
 [1.0.0.0]: https://github.com/alezhu/Shift-Switch/releases/tag/v1.0.0.0

@@ -3,10 +3,10 @@
   <!-- Single source of truth for version -->
   <PropertyGroup>
     <VersionMajor>1</VersionMajor>
-    <VersionMinor>0</VersionMinor>
-    <VersionPatch>1</VersionPatch>
-    <VersionString>1.0.1</VersionString>
-    <VersionStringComma>1,0,1</VersionStringComma>
+    <VersionMinor>1</VersionMinor>
+    <VersionPatch>0</VersionPatch>
+    <VersionString>1.1.0</VersionString>
+    <VersionStringComma>1,1,0</VersionStringComma>
     <ProductName>Shift Switch</ProductName>
     <CompanyName>Alezhu</CompanyName>
     <Copyright>Copyright (C) 2025</Copyright>

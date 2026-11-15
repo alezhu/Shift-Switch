@@ -12,9 +12,9 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Version.props")
     set(PARSED_VERSION "${PARSED_VER_MAJOR}.${PARSED_VER_MINOR}.${PARSED_VER_PATCH}")
 else()
     set(PARSED_VER_MAJOR 1)
-    set(PARSED_VER_MINOR 0)
-    set(PARSED_VER_PATCH 1)
-    set(PARSED_VERSION "1.0.1")
+    set(PARSED_VER_MINOR 1)
+    set(PARSED_VER_PATCH 0)
+    set(PARSED_VERSION "1.1.0")
 endif()
 
 project(ShiftSwitch
