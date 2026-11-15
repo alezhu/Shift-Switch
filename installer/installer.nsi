@@ -22,7 +22,7 @@ RequestExecutionLevel admin
 ; Directory with the built binaries (relative to this script). Override with
 ; /DSOURCE_DIR=<path> to package a build that is not in bin\Release\.
 !ifndef SOURCE_DIR
-!ifFileExists "..\\bin\\Release\\ShiftSwitchUI.exe"
+!if /FILEEXISTS "..\\bin\\Release\\ShiftSwitchUI.exe"
 !define SOURCE_DIR "..\\bin\\Release"
 !else
 !define SOURCE_DIR "..\\Release"

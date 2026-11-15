@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Installer packaging reliability to ensure valid installation packages across all builds.
 - Seamless layout switching in Start menu, Windows Search, and modern AppContainer applications.
 - Synchronized language indicator in the Windows taskbar immediately after switching.
 - Prevented application freezes when switching layouts in .NET and Qt applications.
