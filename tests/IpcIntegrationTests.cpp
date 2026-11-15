@@ -739,9 +739,9 @@ namespace
 	std::wstring FindCompanionTestExe()
 	{
 #ifdef _WIN64
-		const wchar_t* subPath = L"Win32";
-#else
 		const wchar_t* subPath = L"x64";
+#else
+		const wchar_t* subPath = L"x86";
 #endif
 
 		wchar_t exePath[MAX_PATH] = L"";

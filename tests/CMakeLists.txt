@@ -26,17 +26,17 @@ target_include_directories(ShiftSwitchTests PRIVATE
     "${CMAKE_SOURCE_DIR}/ShiftSwitch"
 )
 
-# Output directory: <ARCH>/<CONFIG>/ to match MSBuild tests output structure
+# Output directory: bin/tests/<ARCH>/<CONFIG>/
 if(CMAKE_CONFIGURATION_TYPES)
     foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
         string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG_UPPER)
         set_target_properties(ShiftSwitchTests PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER} "${CMAKE_SOURCE_DIR}/${ARCH_DIR}/${OUTPUTCONFIG}"
+            RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER} "${CMAKE_SOURCE_DIR}/bin/tests/${ARCH_DIR}/${OUTPUTCONFIG}"
         )
     endforeach()
 elseif(CMAKE_BUILD_TYPE)
     set_target_properties(ShiftSwitchTests PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/${ARCH_DIR}/${CMAKE_BUILD_TYPE}"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/tests/${ARCH_DIR}/${CMAKE_BUILD_TYPE}"
     )
 endif()
 
