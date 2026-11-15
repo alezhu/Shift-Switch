@@ -139,10 +139,8 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path bin/Release | Out-Null
           New-Item -ItemType Directory -Force -Path Release | Out-Null
-          Copy-Item artifacts/x64/*.exe,artifacts/x64/*.dll bin/Release/ -ErrorAction SilentlyContinue
-          Copy-Item artifacts/x86/*.exe,artifacts/x86/*.dll bin/Release/ -ErrorAction SilentlyContinue
-          Copy-Item artifacts/x64/*.exe,artifacts/x64/*.dll Release/ -ErrorAction SilentlyContinue
-          Copy-Item artifacts/x86/*.exe,artifacts/x86/*.dll Release/ -ErrorAction SilentlyContinue
+          Get-ChildItem -Path artifacts -Recurse -Include *.exe, *.dll | Copy-Item -Destination bin/Release/ -Force
+          Copy-Item bin/Release/* Release/ -Force
           Get-ChildItem bin/Release
 
       - name: Install NSIS and plugins
@@ -179,8 +177,7 @@ jobs:
         with:
           name: symbols-release
           path: |
-            artifacts/x64/*.pdb
-            artifacts/x86/*.pdb
+            artifacts/**/*.pdb
           retention-days: 90
 
       - name: Create GitHub Release
