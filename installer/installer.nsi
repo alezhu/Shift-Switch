@@ -155,6 +155,9 @@ Section
         StrCpy $EXE ${EXE32}
     ${EndIf}
     StrCpy $FULLPATH "$INSTDIR\\$EXE"
+
+    CreateDirectory "$SMPROGRAMS\\${DISPLAY_NAME}"
+    CreateShortcut "$SMPROGRAMS\\${DISPLAY_NAME}\\${DISPLAY_NAME}.lnk" "$FULLPATH"
     
 
     Push $0
@@ -191,6 +194,8 @@ Section
 SectionEnd
 
 Section "Uninstall"
+    SetShellVarContext all
+
     ; Remove the autostart entry from the scope recorded at install time and
     ; from both scopes otherwise, so entries left by older versions go away.
     ReadRegStr $1 HKLM "${REG_UNINSTALL_KEY}\\${DISPLAY_NAME}" "AutostartHive"
@@ -199,6 +204,13 @@ Section "Uninstall"
     ${EndIf}
     DeleteRegValue HKCU "${REG_RUN_KEY}" "${DISPLAY_NAME}"
     DeleteRegValue HKLM "${REG_RUN_KEY}" "${DISPLAY_NAME}"
+
+    Delete "$SMPROGRAMS\\${DISPLAY_NAME}\\*.lnk"
+    RMDir "$SMPROGRAMS\\${DISPLAY_NAME}"
+    SetShellVarContext current
+    Delete "$SMPROGRAMS\\${DISPLAY_NAME}\\*.lnk"
+    RMDir "$SMPROGRAMS\\${DISPLAY_NAME}"
+    SetShellVarContext all
     
 
     Push "${EXE32}"
