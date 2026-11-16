@@ -25,6 +25,8 @@ struct SWITCH_LAYOUT_TASK {
 static DWORD WINAPI SwitchLayoutWorkItem(LPVOID param) {
 	std::unique_ptr<SWITCH_LAYOUT_TASK> task(static_cast<SWITCH_LAYOUT_TASK*>(param));
 	if (task == nullptr) return 0;
+	LOG_DEBUG(L"SwitchLayoutWorkItem: thread=%u, hwnd=%p, hkl=%p",
+		GetCurrentThreadId(), task->hwnd, task->hkl);
 	{
 		LayoutSwitchGuard guard;
 		ActivateKeyboardLayout(task->hkl, KLF_SETFORPROCESS);
@@ -63,24 +65,33 @@ HWND getInputWindow(const HOOK_CONTEXT& ctx) {
 }
 
 void ActivateLayout(HKL hkl, const HOOK_CONTEXT& ctx) {
-	if (ctx.lowLevel)
+	const HWND target = getInputWindow(ctx);
+	LOG_DEBUG(L"ActivateLayout: hkl=%p, lowLevel=%d, inputPid=%u, curPid=%u, target=%p, inputHwnd=%p",
+		hkl, ctx.lowLevel, ctx.inputProcessId, dwCurrentProcess, target, ctx.inputHWND);
+
+	// Asynchronously post standard WM_INPUTLANGCHANGEREQUEST to the target window (focused control or active window)
+	PostMessageW(target, WM_INPUTLANGCHANGEREQUEST, INPUTLANGCHANGE_SYSCHARSET, reinterpret_cast<LPARAM>(hkl));
+	if (ctx.inputHWND != nullptr && ctx.inputHWND != target)
 	{
-		const HWND target = getInputWindow(ctx);
-		PostMessageW(target, WM_INPUTLANGCHANGEREQUEST, INPUTLANGCHANGE_SYSCHARSET, reinterpret_cast<LPARAM>(hkl));
-		LogSwitch(L"Post WM_INPUTLANGCHANGEREQUEST (AppContainer)");
-		TsfSync::SyncTsfProfile(hkl);
-		return;
+		PostMessageW(ctx.inputHWND, WM_INPUTLANGCHANGEREQUEST, INPUTLANGCHANGE_SYSCHARSET, reinterpret_cast<LPARAM>(hkl));
 	}
+
 	if (ctx.inputProcessId == dwCurrentProcess)
 	{
 		LogSwitch(L"ActivateKeyboardLayout");
-		ActivateLayoutEx(hkl, ctx.inputHWND);
+		ActivateLayoutEx(hkl, target);
 	}
 	else
 	{
-		PostMessageW(ctx.inputHWND, WMAPP_SWITCH_LAYOUT, reinterpret_cast<WPARAM>(hkl), 0);
-		LogSwitch(L"Post WMAPP_SWITCH_LAYOUT");
+		// Also post custom message to notify any injected hook DLL in the target process
+		PostMessageW(target, WMAPP_SWITCH_LAYOUT, reinterpret_cast<WPARAM>(hkl), 0);
+		if (ctx.inputHWND != nullptr && ctx.inputHWND != target)
+		{
+			PostMessageW(ctx.inputHWND, WMAPP_SWITCH_LAYOUT, reinterpret_cast<WPARAM>(hkl), 0);
+		}
+		LogSwitch(L"Post WM_INPUTLANGCHANGEREQUEST & WMAPP_SWITCH_LAYOUT");
 	}
+
 	TsfSync::SyncTsfProfile(hkl);
 }
 

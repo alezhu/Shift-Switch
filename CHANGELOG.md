@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Prevent duplicate instances from running simultaneously, including when launched from different folders or paths.
+- Reliable keyboard layout switching and immediate taskbar indicator updates in applications with child controls and multi-window interfaces in Release builds.
 
 ## [1.1.1] - 2026-11-16
 

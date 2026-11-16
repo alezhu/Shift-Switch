@@ -113,6 +113,17 @@ LRESULT CALLBACK KeyboardProc(int code, WPARAM wParam, LPARAM lParam)
 		ctx.inputThreadId = GetWindowThreadProcessId(ctx.inputHWND, &ctx.inputProcessId);
 		checkIs32BitWindow(ctx);
 
+		const WORD whlParam = HIWORD(lParam);
+		const bool down = (whlParam & KF_UP) == 0;
+		const UINT scanCode = whlParam & 0x1FF;
+		const auto vkCode = MapVirtualKey(scanCode, MAPVK_VSC_TO_VK_EX);
+
+		if (vkCode == VK_LSHIFT || vkCode == VK_RSHIFT || wParam == VK_SHIFT)
+		{
+			LOG_DEBUG(L"KeyboardProc: vk=0x%x (wP=0x%zx), scan=0x%x, down=%d, is32=%d, fgHwnd=%p, fgPid=%u, curPid=%u",
+				vkCode, wParam, scanCode, (int)down, (int)ctx.inputIs32bitProcess, ctx.inputHWND, ctx.inputProcessId, dwCurrentProcess);
+		}
+
 		if (IsProcessExcluded(ctx.inputProcessId))
 		{
 			LOG_DEBUG(L"KeyboardProc: skipped excluded process PID=%u", ctx.inputProcessId);
@@ -124,16 +135,17 @@ LRESULT CALLBACK KeyboardProc(int code, WPARAM wParam, LPARAM lParam)
 #else
 		if (ctx.inputIs32bitProcess) {
 #endif
-			const WORD whlParam = HIWORD(lParam);
-			const bool down = (whlParam & KF_UP) == 0;
-			const UINT scanCode = whlParam & 0x1FF;
-			const auto vkCode = MapVirtualKey(scanCode, MAPVK_VSC_TO_VK_EX);
-
 			ProcessKeyEvent(g_hookState, vkCode, down, LOWORD(lParam), ctx);
 		}
 		else
 		{
-			LOG_DEBUG(L"KeyboardProc: Skip for bits");
+#ifdef _WIN64
+			constexpr const wchar_t* curArch = L"x64";
+#else
+			constexpr const wchar_t* curArch = L"x86";
+#endif
+			LOG_DEBUG(L"KeyboardProc: Skip for bits (curProc is %s, target is %s)",
+				curArch, ctx.inputIs32bitProcess ? L"x86" : L"x64");
 		}
 	}
 	return CallNextHookEx(nullptr, code, wParam, lParam);
@@ -165,7 +177,11 @@ LRESULT CALLBACK LowLevelKeyboardProc(int code, WPARAM wParam, LPARAM lParam)
 				return CallNextHookEx(nullptr, code, wParam, lParam);
 			}
 
-			if (ProcessUtils::isAppContainerProcess(ctx.inputProcessId))
+			const bool isAppContainer = ProcessUtils::isAppContainerProcess(ctx.inputProcessId);
+			LOG_DEBUG(L"LowLevelKeyboardProc: vk=0x%x, flags=0x%x, down=%d, fgPid=%u, isAppContainer=%d",
+				kb->vkCode, kb->flags, (int)((kb->flags & LLKHF_UP) == 0), ctx.inputProcessId, (int)isAppContainer);
+
+			if (isAppContainer)
 			{
 				const bool down = (kb->flags & LLKHF_UP) == 0;
 				ProcessKeyEvent(g_lowLevelState, kb->vkCode, down, 1, ctx);
@@ -189,6 +205,8 @@ LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam)
 		{
 			DWORD targetProcessId = 0;
 			GetWindowThreadProcessId(lpMsg->hwnd, &targetProcessId);
+			LOG_DEBUG(L"GetMsgProc: WMAPP_SWITCH_LAYOUT received, targetPid=%u, curPid=%u, hkl=%p",
+				targetProcessId, GetCurrentProcessId(), (void*)lpMsg->wParam);
 			if (targetProcessId == GetCurrentProcessId())
 			{
 				const auto hkl = reinterpret_cast<HKL>(lpMsg->wParam);
@@ -200,6 +218,8 @@ LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam)
 		{
 			DWORD targetProcessId = 0;
 			GetWindowThreadProcessId(lpMsg->hwnd, &targetProcessId);
+			LOG_DEBUG(L"GetMsgProc: WMAPP_SYNC_PROFILE received, targetPid=%u, curPid=%u, hkl=%p",
+				targetProcessId, GetCurrentProcessId(), (void*)lpMsg->wParam);
 			if (targetProcessId == GetCurrentProcessId())
 			{
 				const auto hkl = reinterpret_cast<HKL>(lpMsg->wParam);
