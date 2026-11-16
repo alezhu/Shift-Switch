@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Immediate update of the system taskbar language indicator when switching keyboard layouts, without requiring a window focus change.
+- Reliable layout switching across 32-bit and 64-bit applications in Release builds.
+
 ## [1.1.0] - 2026-11-16
 
 ### Added

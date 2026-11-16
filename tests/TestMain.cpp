@@ -5,6 +5,7 @@
 #include "IpcIntegrationTests.h"
 #include "IconHelperTests.h"
 #include "AppSettingsTests.h"
+#include "TsfSyncTests.h"
 
 #include <windows.h>
 #include <cstdio>
@@ -38,6 +39,9 @@ int wmain(int argc, wchar_t* argv[])
 	std::printf("\n");
 
 	runAppSettingsTests();
+	std::printf("\n");
+
+	runTsfSyncTests();
 	std::printf("\n");
 
 	std::printf("========================================\n");

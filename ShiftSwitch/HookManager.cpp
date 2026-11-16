@@ -26,37 +26,8 @@ UINT WMAPP_SYNC_PROFILE = 0;
 std::atomic<bool> bSkipProcess{false};
 
 static std::atomic<bool> g_initialized{false};
-static std::atomic<bool> g_perProcessInitialized{false};
 static ShiftTap::State g_hookState;
 static ShiftTap::State g_lowLevelState;
-
-void EnsurePerProcessInit()
-{
-	if (g_perProcessInitialized.exchange(true))
-		return;
-
-	WMAPP_SWITCH_LAYOUT = RegisterWindowMessageW(MSG_SWITCH_LAYOUT_NAME);
-	WMAPP_SYNC_PROFILE = RegisterWindowMessageW(MSG_SYNC_PROFILE_NAME);
-
-	const auto hUser32 = GetModuleHandleW(L"User32");
-	if (hUser32 != nullptr)
-	{
-		typedef BOOL(WINAPI* FN_ChangeWindowMessageFilter)(UINT, DWORD);
-		const auto lpfn_ChangeWindowMessageFilter = reinterpret_cast<FN_ChangeWindowMessageFilter>(
-			GetProcAddress(hUser32, "ChangeWindowMessageFilter"));
-		if (lpfn_ChangeWindowMessageFilter != nullptr)
-		{
-			lpfn_ChangeWindowMessageFilter(WMAPP_SWITCH_LAYOUT, MSGFLT_ADD);
-			lpfn_ChangeWindowMessageFilter(WMAPP_SYNC_PROFILE, MSGFLT_ADD);
-		}
-	}
-
-	dwCurrentProcess = GetCurrentProcessId();
-
-	wchar_t dllPath[MAX_PATH] = L"";
-	GetModuleFileNameW(nullptr, dllPath, MAX_PATH);
-	LogInit(dllPath);
-}
 
 bool InitializeOnce()
 {
@@ -74,8 +45,25 @@ bool InitializeOnce()
 		RegQueryValueExW(hKey, L"LayoutRight", nullptr, nullptr, reinterpret_cast<LPBYTE>(klidRight), &size);
 	}
 
-	hklEnglish = LoadKeyboardLayout(klidLeft, 0);
-	hklRussian = LoadKeyboardLayout(klidRight, 0);
+	hklEnglish = LoadKeyboardLayoutW(klidLeft, 0);
+	if (hklEnglish == nullptr)
+	{
+		hklEnglish = LoadKeyboardLayoutW(L"00000409", 0);
+	}
+	if (hklEnglish == nullptr)
+	{
+		hklEnglish = reinterpret_cast<HKL>(static_cast<UINT_PTR>(0x04090409));
+	}
+
+	hklRussian = LoadKeyboardLayoutW(klidRight, 0);
+	if (hklRussian == nullptr)
+	{
+		hklRussian = LoadKeyboardLayoutW(L"00000419", 0);
+	}
+	if (hklRussian == nullptr)
+	{
+		hklRussian = reinterpret_cast<HKL>(static_cast<UINT_PTR>(0x04190419));
+	}
 
 	ProcessExclusionCache::Instance().Refresh();
 	LOG_INFO(L"Loaded %zu excluded processes", ProcessExclusionCache::Instance().GetExcludedCount());
@@ -93,18 +81,26 @@ bool InitializeOnce()
 		if (lpfn_ChangeWindowMessageFilter != nullptr)
 		{
 			lpfn_ChangeWindowMessageFilter(WMAPP_SWITCH_LAYOUT, MSGFLT_ADD);
+			lpfn_ChangeWindowMessageFilter(WMAPP_SYNC_PROFILE, MSGFLT_ADD);
 		}
 	}
 
+	wchar_t dllPath[MAX_PATH] = L"";
+	GetModuleFileNameW(nullptr, dllPath, MAX_PATH);
+	LogInit(dllPath);
+
 #ifdef _DEBUG
-	wchar_t szPath[MAX_PATH] = L"";
-	szPath[GetModuleFileNameW(nullptr, szPath, MAX_PATH)] = 0;
 	std::wstringstream stream;
-	stream << L"Attach: " << szPath;
+	stream << L"Attach: " << dllPath;
 	SendEvent(stream.str());
 #endif
 
 	return true;
+}
+
+void EnsurePerProcessInit()
+{
+	InitializeOnce();
 }
 
 LRESULT CALLBACK KeyboardProc(int code, WPARAM wParam, LPARAM lParam)
@@ -157,6 +153,11 @@ LRESULT CALLBACK LowLevelKeyboardProc(int code, WPARAM wParam, LPARAM lParam)
 			ctx.lowLevel = true;
 			ctx.inputHWND = ::GetForegroundWindow();
 			ctx.inputThreadId = GetWindowThreadProcessId(ctx.inputHWND, &ctx.inputProcessId);
+			if (ctx.inputHWND == nullptr)
+			{
+				ctx.inputProcessId = GetCurrentProcessId();
+				ctx.inputThreadId = GetCurrentThreadId();
+			}
 
 			if (IsProcessExcluded(ctx.inputProcessId))
 			{
@@ -310,6 +311,7 @@ BOOL APIENTRY SetHook(BOOL bSet)
 		hook_WH_KEYBOARD.reset();
 		SetLowLevelHook(false);
 		LogThreadStop();
+		g_initialized.store(false);
 	}
 
 	return true;

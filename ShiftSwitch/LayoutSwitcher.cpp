@@ -4,6 +4,7 @@
 #include "AsyncLogger.h"
 #include "ProcessUtils.h"
 #include "CHandle.h"
+#include "TsfSync.h"
 #include <memory>
 
 LayoutSwitchGuard::LayoutSwitchGuard()
@@ -23,6 +24,7 @@ struct SWITCH_LAYOUT_TASK {
 
 static DWORD WINAPI SwitchLayoutWorkItem(LPVOID param) {
 	std::unique_ptr<SWITCH_LAYOUT_TASK> task(static_cast<SWITCH_LAYOUT_TASK*>(param));
+	if (task == nullptr) return 0;
 	{
 		LayoutSwitchGuard guard;
 		ActivateKeyboardLayout(task->hkl, KLF_SETFORPROCESS);
@@ -50,16 +52,23 @@ void ActivateLayoutEx(HKL hkl, HWND hwnd) {
 
 HWND getInputWindow(const HOOK_CONTEXT& ctx) {
 	GUITHREADINFO info = { sizeof(info) };
-	if (GetGUIThreadInfo(ctx.inputThreadId, &info) && info.hwndFocus != nullptr)
-		return info.hwndFocus;
+	if (GetGUIThreadInfo(ctx.inputThreadId, &info))
+	{
+		if (info.hwndFocus != nullptr)
+			return info.hwndFocus;
+		if (info.hwndActive != nullptr)
+			return info.hwndActive;
+	}
 	return ctx.inputHWND;
 }
 
 void ActivateLayout(HKL hkl, const HOOK_CONTEXT& ctx) {
 	if (ctx.lowLevel)
 	{
-		PostMessageW(getInputWindow(ctx), WM_INPUTLANGCHANGEREQUEST, 0, reinterpret_cast<LPARAM>(hkl));
+		const HWND target = getInputWindow(ctx);
+		PostMessageW(target, WM_INPUTLANGCHANGEREQUEST, INPUTLANGCHANGE_SYSCHARSET, reinterpret_cast<LPARAM>(hkl));
 		LogSwitch(L"Post WM_INPUTLANGCHANGEREQUEST (AppContainer)");
+		TsfSync::SyncTsfProfile(hkl);
 		return;
 	}
 	if (ctx.inputProcessId == dwCurrentProcess)
@@ -72,6 +81,7 @@ void ActivateLayout(HKL hkl, const HOOK_CONTEXT& ctx) {
 		PostMessageW(ctx.inputHWND, WMAPP_SWITCH_LAYOUT, reinterpret_cast<WPARAM>(hkl), 0);
 		LogSwitch(L"Post WMAPP_SWITCH_LAYOUT");
 	}
+	TsfSync::SyncTsfProfile(hkl);
 }
 
 bool checkIsSomeModifKeyDownExcept(const BYTE except) {
@@ -102,7 +112,7 @@ void checkIs32BitWindow(HOOK_CONTEXT& ctx)
 		ctx.inputProcessId = GetCurrentProcessId();
 		ctx.inputThreadId = GetCurrentThreadId();
 	}
-	const CHandle process(OpenProcess(PROCESS_QUERY_INFORMATION, false, ctx.inputProcessId));
+	const CHandle process(OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, ctx.inputProcessId));
 	if (process.isValid())
 	{
 		ctx.inputIs32bitProcess = ProcessUtils::is32bitProcess(process.get());

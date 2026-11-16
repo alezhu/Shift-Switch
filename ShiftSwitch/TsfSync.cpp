@@ -6,64 +6,69 @@ namespace TsfSync
 {
 namespace
 {
-	struct TSF_CACHE {
-		ITfInputProcessorProfileMgr* profiles = nullptr;
-	};
-
-	TSF_CACHE& getTsfCache() {
-		static thread_local TSF_CACHE cache;
-		return cache;
-	}
-
-	bool isComInitialized() {
-		typedef HRESULT(WINAPI* FN_CoGetApartmentType)(APTTYPE*, APTTYPEQUALIFIER*);
-		const auto ole32 = GetModuleHandleW(L"ole32.dll");
-		if (ole32 == nullptr)
-			return true;
-		const auto lpfn_CoGetApartmentType =
-			reinterpret_cast<FN_CoGetApartmentType>(GetProcAddress(ole32, "CoGetApartmentType"));
-		if (lpfn_CoGetApartmentType == nullptr)
-			return true;
-		APTTYPE type;
-		APTTYPEQUALIFIER qualifier;
-		return SUCCEEDED(lpfn_CoGetApartmentType(&type, &qualifier));
-	}
-
-	bool ensureTsfProfiles() {
-		TSF_CACHE& cache = getTsfCache();
-		if (cache.profiles != nullptr)
-			return true;
-		if (!isComInitialized())
-			return false;
-
-		ITfInputProcessorProfiles* legacy = nullptr;
-		HRESULT hr = CoCreateInstance(CLSID_TF_InputProcessorProfiles, nullptr,
-			CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&legacy));
-		if (SUCCEEDED(hr))
-		{
-			hr = legacy->QueryInterface(IID_PPV_ARGS(&cache.profiles));
-			legacy->Release();
+	struct ScopedApartment {
+		HRESULT hr = E_FAIL;
+		bool shouldUninit = false;
+		ScopedApartment() {
+			hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+			if (hr == S_OK || hr == S_FALSE) {
+				shouldUninit = true;
+			}
 		}
-		return SUCCEEDED(hr) && cache.profiles != nullptr;
-	}
+		~ScopedApartment() {
+			if (shouldUninit) {
+				CoUninitialize();
+			}
+		}
+	};
 }
 
 bool SyncTsfProfile(const HKL hkl) {
-	if (hkl == nullptr || !ensureTsfProfiles())
+	if (hkl == nullptr)
 		return false;
 
 	const LANGID langid = LOWORD(reinterpret_cast<UINT_PTR>(hkl));
-	const CLSID nullClsid = {};
-	const GUID nullGuid = {};
-	HRESULT hr = getTsfCache().profiles->ActivateProfile(
-		TF_PROFILETYPE_KEYBOARDLAYOUT, langid, nullClsid, nullGuid, hkl,
-		TF_IPPMF_FORPROCESS);
-	if (FAILED(hr))
+
+	ScopedApartment com;
+
+	ITfInputProcessorProfiles* profiles = nullptr;
+	HRESULT hr = CoCreateInstance(CLSID_TF_InputProcessorProfiles, nullptr,
+		CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&profiles));
+	if (FAILED(hr) || profiles == nullptr)
+		return false;
+
+	// 1. ChangeCurrentLanguage and ActivateLanguageProfile notify TSF sinks (including Language Bar / Taskbar)
+	profiles->ChangeCurrentLanguage(langid);
+	profiles->ActivateLanguageProfile(CLSID_NULL, langid, GUID_NULL);
+
+	// 2. ActivateProfile updates the text service profile for the process and session
+	ITfInputProcessorProfileMgr* profileMgr = nullptr;
+	hr = profiles->QueryInterface(IID_PPV_ARGS(&profileMgr));
+	if (SUCCEEDED(hr) && profileMgr != nullptr)
 	{
-		hr = getTsfCache().profiles->ActivateProfile(
+		const CLSID nullClsid = {};
+		const GUID nullGuid = {};
+		const DWORD flags = TF_IPPMF_FORSESSION | TF_IPPMF_FORPROCESS;
+
+		hr = profileMgr->ActivateProfile(
 			TF_PROFILETYPE_KEYBOARDLAYOUT, langid, nullClsid, nullGuid, hkl,
-			TF_IPPMF_FORPROCESS | TF_IPPMF_DONTCARECURRENTINPUTLANGUAGE);
+			flags);
+		if (FAILED(hr))
+		{
+			hr = profileMgr->ActivateProfile(
+				TF_PROFILETYPE_KEYBOARDLAYOUT, langid, nullClsid, nullGuid, hkl,
+				flags | TF_IPPMF_DONTCARECURRENTINPUTLANGUAGE);
+		}
+		if (FAILED(hr))
+		{
+			profileMgr->ActivateProfile(
+				TF_PROFILETYPE_KEYBOARDLAYOUT, langid, nullClsid, nullGuid, hkl,
+				TF_IPPMF_FORPROCESS);
+		}
+		profileMgr->Release();
 	}
-	return SUCCEEDED(hr);
+
+	profiles->Release();
+	return true;
 }
 }

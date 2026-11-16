@@ -11,7 +11,9 @@ set(TESTS_SOURCES
     TestHarness.h
     IconHelperTests.h
     AppSettingsTests.h
+    TsfSyncTests.h
     "${CMAKE_SOURCE_DIR}/ShiftSwitchUI/HookController.cpp"
+    "${CMAKE_SOURCE_DIR}/ShiftSwitch/TsfSync.cpp"
 )
 
 add_executable(ShiftSwitchTests ${TESTS_SOURCES})
@@ -47,6 +49,7 @@ target_link_libraries(ShiftSwitchTests PRIVATE
     gdi32
     shlwapi
     comctl32
+    ole32
 )
 
 # Ensure DLL and UI are built before tests

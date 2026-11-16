@@ -14,7 +14,7 @@ void ProcessKeyEvent(ShiftTap::State& state, const DWORD keyCode, const bool dow
 	case ShiftTap::Action::SwitchLeft:
 	{
 		const auto hCurKL = GetKeyboardLayout(ctx.inputThreadId);
-		if (hCurKL != hklEnglish) {
+		if (LOWORD(reinterpret_cast<UINT_PTR>(hCurKL)) != LOWORD(reinterpret_cast<UINT_PTR>(hklEnglish))) {
 			LogSwitch(L"Switch to English");
 			ActivateLayout(hklEnglish, ctx);
 		}
@@ -23,7 +23,7 @@ void ProcessKeyEvent(ShiftTap::State& state, const DWORD keyCode, const bool dow
 	case ShiftTap::Action::SwitchRight:
 	{
 		const auto hCurKL = GetKeyboardLayout(ctx.inputThreadId);
-		if (hCurKL != hklRussian) {
+		if (LOWORD(reinterpret_cast<UINT_PTR>(hCurKL)) != LOWORD(reinterpret_cast<UINT_PTR>(hklRussian))) {
 			LogSwitch(L"Switch to Russian");
 			ActivateLayout(hklRussian, ctx);
 		}
