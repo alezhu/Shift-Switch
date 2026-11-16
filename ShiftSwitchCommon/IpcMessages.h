@@ -17,3 +17,7 @@ constexpr LRESULT STATE_RESULT_ERROR        = 0;
 // Registered window message names for Hook DLL layout switching & TSF profile sync
 inline constexpr const wchar_t* MSG_SWITCH_LAYOUT_NAME = L"WMAPP_SWITCH_LAYOUT";
 inline constexpr const wchar_t* MSG_SYNC_PROFILE_NAME  = L"WMAPP_SYNC_PROFILE";
+
+// Single-instance mutex names (per-session)
+inline constexpr const wchar_t* SHIFTSWITCH_MAIN_MUTEX_NAME  = L"Local\\ShiftSwitch_MainProcess";
+inline constexpr const wchar_t* SHIFTSWITCH_CHILD_MUTEX_NAME = L"Local\\ShiftSwitch_ChildProcess";

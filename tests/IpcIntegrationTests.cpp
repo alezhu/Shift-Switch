@@ -913,6 +913,125 @@ namespace
 
 		childGuard.dismiss();
 	}
+
+	std::wstring FindAppExecutable()
+	{
+#ifdef _WIN64
+		const wchar_t* exeName = L"ShiftSwitchUI64.exe";
+#else
+		const wchar_t* exeName = L"ShiftSwitchUI.exe";
+#endif
+
+		wchar_t exePath[MAX_PATH] = L"";
+		GetModuleFileNameW(nullptr, exePath, MAX_PATH);
+		PathRemoveFileSpecW(exePath);
+
+		wchar_t currentDir[MAX_PATH] = L"";
+		wcscpy_s(currentDir, exePath);
+
+		for (int level = 0; level < 6; ++level)
+		{
+			const std::vector<std::wstring> checks = {
+				std::wstring(currentDir) + L"\\" + exeName,
+				std::wstring(currentDir) + L"\\bin\\Release\\" + exeName,
+				std::wstring(currentDir) + L"\\bin\\Debug\\" + exeName,
+				std::wstring(currentDir) + L"\\Release\\" + exeName,
+				std::wstring(currentDir) + L"\\Debug\\" + exeName
+			};
+
+			for (const auto& path : checks)
+			{
+				const DWORD attr = GetFileAttributesW(path.c_str());
+				if (attr != INVALID_FILE_ATTRIBUTES && !(attr & FILE_ATTRIBUTE_DIRECTORY))
+				{
+					wchar_t fullPath[MAX_PATH] = L"";
+					GetFullPathNameW(path.c_str(), MAX_PATH, fullPath, nullptr);
+					return std::wstring(fullPath);
+				}
+			}
+
+			if (!PathRemoveFileSpecW(currentDir))
+				break;
+		}
+		return L"";
+	}
+
+	// Test 6: Single-instance mutex enforcement and duplicate prevention
+	void testSingleInstanceEnforcement()
+	{
+		// 1. Verify Main process mutex creation and duplicate detection
+		{
+			CHandle mainMutex(CreateMutexW(nullptr, FALSE, SHIFTSWITCH_MAIN_MUTEX_NAME));
+			CHECK_TRUE(mainMutex.isValid());
+			CHECK_TRUE(GetLastError() != ERROR_ALREADY_EXISTS);
+
+			CHandle duplicateMain(CreateMutexW(nullptr, FALSE, SHIFTSWITCH_MAIN_MUTEX_NAME));
+			CHECK_TRUE(duplicateMain.isValid());
+			CHECK_EQUAL(GetLastError(), static_cast<DWORD>(ERROR_ALREADY_EXISTS));
+		}
+
+		// 2. Verify Child process mutex creation and duplicate detection
+		{
+			CHandle childMutex(CreateMutexW(nullptr, FALSE, SHIFTSWITCH_CHILD_MUTEX_NAME));
+			CHECK_TRUE(childMutex.isValid());
+			CHECK_TRUE(GetLastError() != ERROR_ALREADY_EXISTS);
+
+			CHandle duplicateChild(CreateMutexW(nullptr, FALSE, SHIFTSWITCH_CHILD_MUTEX_NAME));
+			CHECK_TRUE(duplicateChild.isValid());
+			CHECK_EQUAL(GetLastError(), static_cast<DWORD>(ERROR_ALREADY_EXISTS));
+		}
+
+		// 3. Verify Coexistence: Main and Child mutexes can be held simultaneously
+		{
+			CHandle mainMutex(CreateMutexW(nullptr, FALSE, SHIFTSWITCH_MAIN_MUTEX_NAME));
+			CHECK_TRUE(mainMutex.isValid());
+			CHECK_TRUE(GetLastError() != ERROR_ALREADY_EXISTS);
+
+			CHandle childMutex(CreateMutexW(nullptr, FALSE, SHIFTSWITCH_CHILD_MUTEX_NAME));
+			CHECK_TRUE(childMutex.isValid());
+			CHECK_TRUE(GetLastError() != ERROR_ALREADY_EXISTS);
+		}
+
+		// 4. End-to-end: Launching UI executable when main mutex is held must exit immediately with code 1
+		const std::wstring appExe = FindAppExecutable();
+		if (!appExe.empty())
+		{
+			CHandle mainMutex(CreateMutexW(nullptr, FALSE, SHIFTSWITCH_MAIN_MUTEX_NAME));
+			CHECK_TRUE(mainMutex.isValid());
+			CHECK_TRUE(GetLastError() != ERROR_ALREADY_EXISTS);
+
+			STARTUPINFOW si = { sizeof(si) };
+			PROCESS_INFORMATION pi = {};
+			std::wstring cmdLine = L"\"" + appExe + L"\"";
+
+			const BOOL created = CreateProcessW(
+				appExe.c_str(),
+				cmdLine.data(),
+				nullptr,
+				nullptr,
+				FALSE,
+				0,
+				nullptr,
+				nullptr,
+				&si,
+				&pi
+			);
+
+			CHECK_TRUE(created);
+			if (created)
+			{
+				CloseHandle(pi.hThread);
+				const DWORD waitRes = WaitForSingleObject(pi.hProcess, 5000);
+				CHECK_EQUAL(waitRes, WAIT_OBJECT_0);
+
+				DWORD exitCode = 0;
+				GetExitCodeProcess(pi.hProcess, &exitCode);
+				CHECK_EQUAL(exitCode, 1);
+
+				CloseHandle(pi.hProcess);
+			}
+		}
+	}
 }
 
 void runIpcIntegrationTests()
@@ -923,4 +1042,5 @@ void runIpcIntegrationTests()
 	testCrossProcessIpcAndGracefulTeardown();
 	testCrossProcessOrphanTeardown();
 	testCrossBitnessIpc();
+	testSingleInstanceEnforcement();
 }

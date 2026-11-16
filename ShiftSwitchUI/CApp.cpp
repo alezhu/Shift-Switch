@@ -3,6 +3,8 @@
 
 #include "CProcessChild.h"
 #include "CProcessMain.h"
+#include "IpcMessages.h"
+#include "resource.h"
 
 #include <commctrl.h>
 #include <cwchar>
@@ -14,18 +16,9 @@ CApp& CApp::getInstance()
 	return singleton;
 }
 
-std::wstring CApp::getMutexName() const
+std::wstring CApp::getMutexName(bool isChild) const
 {
-	WCHAR path[MAX_PATH] = L"";
-	auto size = ::GetModuleFileNameW(nullptr, path, MAX_PATH);
-	CharUpperBuffW(path, size);
-	auto lpStart = path;
-	while (auto delim = wcsstr(lpStart, L"\\"))
-	{
-		*delim = L'_';
-		lpStart = delim + 1;
-	}
-	return { path };
+	return isChild ? SHIFTSWITCH_CHILD_MUTEX_NAME : SHIFTSWITCH_MAIN_MUTEX_NAME;
 }
 
 int CApp::start(HINSTANCE hInstance, LPWSTR lpCmdLine)
@@ -36,26 +29,43 @@ int CApp::start(HINSTANCE hInstance, LPWSTR lpCmdLine)
 	INITCOMMONCONTROLSEX icex = { sizeof(icex), ICC_LISTVIEW_CLASSES | ICC_STANDARD_CLASSES | ICC_HOTKEY_CLASS | ICC_LINK_CLASS };
 	InitCommonControlsEx(&icex);
 
-	auto mutexName = getMutexName();
+	bool isChild = false;
+	if (lpCmdLine != nullptr && wcslen(lpCmdLine) > 0)
+	{
+		const auto parentHwnd = reinterpret_cast<HWND>(std::wcstoull(lpCmdLine, nullptr, 10));
+		if (parentHwnd != nullptr && ::IsWindow(parentHwnd))
+		{
+			WCHAR className[64] = L"";
+			const auto expectedClassName = getResourceString(IDC_SHIFTSWITCHUI);
+			if (::GetClassNameW(parentHwnd, className, static_cast<int>(ARRAYSIZE(className))) > 0
+				&& expectedClassName != nullptr && wcscmp(className, expectedClassName) == 0)
+			{
+				isChild = true;
+				m_hwndParentProcess = parentHwnd;
+			}
+			else
+			{
+				// Passed window handle is not a ShiftSwitch main window
+				return 1;
+			}
+		}
+		else
+		{
+			// Passed argument is not a valid window handle
+			return 1;
+		}
+	}
+
+	const auto mutexName = getMutexName(isChild);
 	m_mutex = std::make_unique<CMutex>(nullptr, false, mutexName.c_str());
 	if (!m_mutex->isValid() || ::GetLastError() == ERROR_ALREADY_EXISTS)
 	{
 		return 1;
 	}
 
-
-	if (wcslen(lpCmdLine) > 0)
+	if (isChild)
 	{
-		//May be Child process
-		m_hwndParentProcess = HWND(std::wcstoull(lpCmdLine, nullptr, 10));
 		m_process = std::make_unique<CProcessChild>();
-		//#ifdef _DEBUG
-		//		{
-		//			std::wstringstream stream;
-		//			stream << L"Parent HWND: " << hwndParentProcess;
-		//			log(stream.str().c_str());
-		//		}
-		//#endif
 	}
 	else
 	{

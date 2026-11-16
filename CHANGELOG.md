@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Start Menu program folder and application shortcut during installation, with clean removal on uninstallation.
 
+### Fixed
+
+- Prevent duplicate instances from running simultaneously, including when launched from different folders or paths.
+
 ## [1.1.1] - 2026-11-16
 
 ### Fixed

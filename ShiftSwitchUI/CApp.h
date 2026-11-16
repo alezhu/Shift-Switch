@@ -10,7 +10,7 @@ class CApp
 {
 public:
 	static CApp& getInstance();
-	std::wstring getMutexName() const;
+	std::wstring getMutexName(bool isChild = false) const;
 	int start(HINSTANCE hInstance, LPWSTR lpCmdLine);
 
 	LPCTSTR getResourceString(
