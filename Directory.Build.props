@@ -9,9 +9,7 @@
     <TargetPlatform>x86</TargetPlatform>
     <TargetPlatform Condition="'$(Platform)' == 'x64'">x64</TargetPlatform>
     
-    <IntDir>$(SolutionDir)obj\$(TargetPlatform)\$(Configuration)\$(ProjectName)\</IntDir>
-    <!-- Tests go to bin\tests\<Platform>, others go to bin\<Configuration> -->
-    <OutDir Condition="'$(ProjectName)' == 'ShiftSwitchTests'">$(SolutionDir)bin\tests\$(TargetPlatform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)obj\$(TargetPlatform)\$(Configuration)\$(MSBuildProjectName)\</IntDir>
     <OutDir Condition="'$(OutDir)' == ''">$(SolutionDir)bin\$(Configuration)\</OutDir>
   </PropertyGroup>
 

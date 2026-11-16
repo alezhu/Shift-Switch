@@ -49,7 +49,7 @@ jobs:
           /verbosity:minimal
 
       - name: Run unit tests
-        run: .\bin\${{ matrix.platform }}\${{ matrix.config }}\ShiftSwitchTests.exe
+        run: .\bin\tests\${{ matrix.platform }}\${{ matrix.config }}\ShiftSwitchTests.exe
 
       - name: Upload binaries
         uses: actions/upload-artifact@v7
