@@ -16,24 +16,24 @@ RequestExecutionLevel admin
 !define EXE32 "ShiftSwitchUI.exe"
 !define EXE64 "ShiftSwitchUI64.exe"
 !define UNINSTALLER_NAME "uninstaller.exe"
-!define REG_UNINSTALL_KEY "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
-!define REG_RUN_KEY "Software\\Microsoft\\Windows\\CurrentVersion\\Run"
+!define REG_UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall"
+!define REG_RUN_KEY "Software\Microsoft\Windows\CurrentVersion\Run"
 
 ; Directory with the built binaries (relative to this script). Override with
 ; /DSOURCE_DIR=<path> to package a build that is not in bin\Release\.
 !ifndef SOURCE_DIR
-!if /FILEEXISTS "..\\bin\\Release\\ShiftSwitchUI.exe"
-!define SOURCE_DIR "..\\bin\\Release"
+!if /FILEEXISTS "..\bin\Release\ShiftSwitchUI.exe"
+!define SOURCE_DIR "..\bin\Release"
 !else
-!define SOURCE_DIR "..\\Release"
+!define SOURCE_DIR "..\Release"
 !endif
 !endif
 
 Name "${DISPLAY_NAME} Installer"
 OutFile "Shift-Switch-Installer_${VERSION}.exe"
-Icon "..\\ShiftSwitchUI\\app.ico"
+Icon "..\ShiftSwitchUI\app.ico"
 
-InstallDir "$PROGRAMFILES64\\${DISPLAY_NAME}"
+InstallDir "$PROGRAMFILES64\${DISPLAY_NAME}"
 
 Var EXE
 Var FULLPATH
@@ -63,10 +63,10 @@ FunctionEnd
 
 !define CheckDllExists "!insertmacro CheckDllExists"
 !macro CheckDllExists
-    IfFileExists $INSTDIR\\*.dll reboot exit
+    IfFileExists "$INSTDIR\*.dll" reboot exit
     
 reboot:
-    Delete /REBOOTOK $INSTDIR\\*.dll        
+    Delete /REBOOTOK "$INSTDIR\*.dll"
     MessageBox MB_YESNO|MB_ICONSTOP "Uninstall previous version need reboot. Reboot now?" /SD IDNO IDYES +2
     Abort
     Reboot
@@ -103,18 +103,18 @@ qloop:
 run:
 	StrCpy $2 $1 $3 ; Path to uninstaller
 	StrCpy $1 161 ; ERROR_BAD_PATHNAME
-	GetFullPathName $3 "$2\\.." ; $InstDir
+	GetFullPathName $3 "$2\.." ; $InstDir
 	IfFileExists "$2" 0 +4
     DetailPrint "Uninstalling previous version..."    
-	ExecWait '"$2" /S _?=\$3' $1 ; This assumes the existing uninstaller is a NSIS uninstaller, other uninstallers don't support /S nor _?=
+	ExecWait '"$2" /S _?=$3' $1 ; This assumes the existing uninstaller is a NSIS uninstaller, other uninstallers don't support /S nor _?=
 	IntCmp $1 0 "" fail fail ; Don't delete the installer if it was aborted
     DetailPrint "Done"    
 	Delete "$2" ; Delete the uninstaller
 	RMDir "$3" ; Try to delete $InstDir
-	RMDir "$3\\.." ; (Optional) Try to delete the parent of $InstDir
+	RMDir "$3\.." ; (Optional) Try to delete the parent of $InstDir
     Return
 fail:    
-    DetailPrint "Fail. =(\"
+    DetailPrint "Fail. =("
     Pop $3
     Pop $2
     Exch $1 ; exitcode
@@ -129,7 +129,7 @@ Section
     SetOutPath $INSTDIR
     
 
-    ReadRegStr $0 HKLM "${REG_UNINSTALL_KEY}\\${DISPLAY_NAME}" "UninstallString"
+    ReadRegStr $0 HKLM "${REG_UNINSTALL_KEY}\${DISPLAY_NAME}" "UninstallString"
     ${If} $0 != ""
         !insertmacro UninstallExisting $0 $0
 #        ${If} $0 <> 0
@@ -139,13 +139,13 @@ Section
         ${CheckDllExists}
     ${EndIf}    
 
-    WriteUninstaller $INSTDIR\\${UNINSTALLER_NAME}
+    WriteUninstaller "$INSTDIR\${UNINSTALLER_NAME}"
     
 
     ${If} ${RunningX64}
-        File /r "${SOURCE_DIR}\\*.exe" "${SOURCE_DIR}\\*.dll" 
+        File /r "${SOURCE_DIR}\*.exe" "${SOURCE_DIR}\*.dll" 
     ${Else} 
-        File /r /x "${SOURCE_DIR}\\*64.*" "${SOURCE_DIR}\\*.exe" "${SOURCE_DIR}\\*.dll" 
+        File /r /x "${SOURCE_DIR}\*64.*" "${SOURCE_DIR}\*.exe" "${SOURCE_DIR}\*.dll" 
     ${EndIf}	
 
 
@@ -154,18 +154,18 @@ Section
     ${Else}
         StrCpy $EXE ${EXE32}
     ${EndIf}
-    StrCpy $FULLPATH "$INSTDIR\\$EXE"
+    StrCpy $FULLPATH "$INSTDIR\$EXE"
 
-    CreateDirectory "$SMPROGRAMS\\${DISPLAY_NAME}"
-    CreateShortcut "$SMPROGRAMS\\${DISPLAY_NAME}\\${DISPLAY_NAME}.lnk" "$FULLPATH"
+    CreateDirectory "$SMPROGRAMS\${DISPLAY_NAME}"
+    CreateShortcut "$SMPROGRAMS\${DISPLAY_NAME}\${DISPLAY_NAME}.lnk" "$FULLPATH"
     
 
     Push $0
-    StrCpy $0 "${REG_UNINSTALL_KEY}\\${DISPLAY_NAME}"
+    StrCpy $0 "${REG_UNINSTALL_KEY}\${DISPLAY_NAME}"
     
 
     WriteRegStr HKLM $0 "DisplayName" "${DISPLAY_NAME}"
-    WriteRegStr HKLM $0 "UninstallString" '"$INSTDIR\\${UNINSTALLER_NAME}"'
+    WriteRegStr HKLM $0 "UninstallString" '"$INSTDIR\${UNINSTALLER_NAME}"'
     WriteRegStr HKLM $0 "DisplayIcon" '"$FULLPATH"'
     WriteRegStr HKLM $0 "Publisher" "alezhu"
     WriteRegStr HKLM $0 "DisplayVersion" "${VERSION}"
@@ -185,11 +185,13 @@ Section
 
 
     ${If} $AUTOSTART_HIVE == "HKLM"
-        WriteRegStr HKLM "${REG_RUN_KEY}" "${DISPLAY_NAME}" "$FULLPATH"
+        DeleteRegValue HKCU "${REG_RUN_KEY}" "${DISPLAY_NAME}"
+        WriteRegStr HKLM "${REG_RUN_KEY}" "${DISPLAY_NAME}" '"$FULLPATH"'
     ${Else}
-        WriteRegStr HKCU "${REG_RUN_KEY}" "${DISPLAY_NAME}" "$FULLPATH"
+        DeleteRegValue HKLM "${REG_RUN_KEY}" "${DISPLAY_NAME}"
+        WriteRegStr HKCU "${REG_RUN_KEY}" "${DISPLAY_NAME}" '"$FULLPATH"'
     ${EndIf}
-    Exec "$FULLPATH"
+    Exec '"$FULLPATH"'
 
 SectionEnd
 
@@ -198,18 +200,18 @@ Section "Uninstall"
 
     ; Remove the autostart entry from the scope recorded at install time and
     ; from both scopes otherwise, so entries left by older versions go away.
-    ReadRegStr $1 HKLM "${REG_UNINSTALL_KEY}\\${DISPLAY_NAME}" "AutostartHive"
+    ReadRegStr $1 HKLM "${REG_UNINSTALL_KEY}\${DISPLAY_NAME}" "AutostartHive"
     ${If} $1 == "HKLM"
         DeleteRegValue HKLM "${REG_RUN_KEY}" "${DISPLAY_NAME}"
     ${EndIf}
     DeleteRegValue HKCU "${REG_RUN_KEY}" "${DISPLAY_NAME}"
     DeleteRegValue HKLM "${REG_RUN_KEY}" "${DISPLAY_NAME}"
 
-    Delete "$SMPROGRAMS\\${DISPLAY_NAME}\\*.lnk"
-    RMDir "$SMPROGRAMS\\${DISPLAY_NAME}"
+    Delete "$SMPROGRAMS\${DISPLAY_NAME}\*.lnk"
+    RMDir "$SMPROGRAMS\${DISPLAY_NAME}"
     SetShellVarContext current
-    Delete "$SMPROGRAMS\\${DISPLAY_NAME}\\*.lnk"
-    RMDir "$SMPROGRAMS\\${DISPLAY_NAME}"
+    Delete "$SMPROGRAMS\${DISPLAY_NAME}\*.lnk"
+    RMDir "$SMPROGRAMS\${DISPLAY_NAME}"
     SetShellVarContext all
     
 
@@ -226,8 +228,8 @@ Section "Uninstall"
          Sleep 1000
        ${EndIf}
         ClearErrors
-        Delete $INSTDIR\\*.dll
-        IfFileExists $INSTDIR\\*.dll next
+        Delete "$INSTDIR\*.dll"
+        IfFileExists "$INSTDIR\*.dll" next
         ${Break}
     next:        
     ${Next}
@@ -236,8 +238,8 @@ Section "Uninstall"
 
     ${CheckDllExists}
 
-    Delete $INSTDIR\\*.exe
-    Delete $INSTDIR\\${UNINSTALLER_NAME} ; delete self 
-    RMDir $INSTDIR
-    DeleteRegKey HKLM "${REG_UNINSTALL_KEY}\\${DISPLAY_NAME}"
+    Delete "$INSTDIR\*.exe"
+    Delete "$INSTDIR\${UNINSTALLER_NAME}" ; delete self 
+    RMDir "$INSTDIR"
+    DeleteRegKey HKLM "${REG_UNINSTALL_KEY}\${DISPLAY_NAME}"
 SectionEnd
