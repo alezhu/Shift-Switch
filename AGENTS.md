@@ -66,6 +66,9 @@ ShiftSwitch was created to solve specific flaws in existing keyboard layout swit
 - `VERSION` is the single source of truth for the project version (e.g. `1.1.0`).
   All build systems (MSBuild, CMake, NSIS installer, resource scripts) derive their
   version definitions automatically from this file.
+- The About dialog dynamically pulls the application version directly from the executable's
+  version resource (properties) at runtime, with fallback to `VERSION_STRING`. When releasing
+  a new version, verify that the About window reflects the new release version.
 - Update every place below in the same release commit:
   - `VERSION`: the single-line version string (`MAJOR.MINOR.PATCH`).
   - `CHANGELOG.md`: the new `## [<version>] - <YYYY-MM-DD>` section.

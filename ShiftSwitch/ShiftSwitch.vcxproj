@@ -236,7 +236,9 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
   <ItemGroup>
-    <ResourceCompile Include="ShiftSwitch.rc" />
+    <ResourceCompile Include="ShiftSwitch.rc">
+      <AdditionalInputs>$(SolutionDir)VERSION;%(AdditionalInputs)</AdditionalInputs>
+    </ResourceCompile>
   </ItemGroup>
     <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

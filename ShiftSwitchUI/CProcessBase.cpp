@@ -24,6 +24,7 @@
 
 #pragma comment(lib, "comdlg32.lib")
 #pragma comment(lib, "shell32.lib")
+#pragma comment(lib, "version.lib")
 
 static HWND s_hAboutDlg = nullptr;
 static HWND s_hSettingsDlg = nullptr;
@@ -186,6 +187,36 @@ static void CenterWindowOnWorkArea(HWND hWnd)
 	}
 }
 
+// Retrieves the version string from the running executable's version resource.
+// If reading the resource fails, falls back to VERSION_STRING.
+static std::wstring GetExecutableVersionString()
+{
+	WCHAR modulePath[MAX_PATH] = {};
+	if (GetModuleFileNameW(nullptr, modulePath, ARRAYSIZE(modulePath)) > 0)
+	{
+		DWORD dummy = 0;
+		const DWORD size = GetFileVersionInfoSizeW(modulePath, &dummy);
+		if (size > 0)
+		{
+			std::vector<BYTE> data(size);
+			if (GetFileVersionInfoW(modulePath, 0, size, data.data()))
+			{
+				VS_FIXEDFILEINFO* pFileInfo = nullptr;
+				UINT len = 0;
+				if (VerQueryValueW(data.data(), L"\\", reinterpret_cast<LPVOID*>(&pFileInfo), &len) &&
+					pFileInfo != nullptr && len >= sizeof(VS_FIXEDFILEINFO))
+				{
+					const int major = HIWORD(pFileInfo->dwProductVersionMS);
+					const int minor = LOWORD(pFileInfo->dwProductVersionMS);
+					const int patch = HIWORD(pFileInfo->dwProductVersionLS);
+					return std::to_wstring(major) + L"." + std::to_wstring(minor) + L"." + std::to_wstring(patch);
+				}
+			}
+		}
+	}
+	return L"" VERSION_STRING;
+}
+
 // Message handler for about box.
 INT_PTR CALLBACK AboutDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -194,9 +225,8 @@ INT_PTR CALLBACK AboutDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPa
 	case WM_INITDIALOG:
 	{
 		s_hAboutDlg = hDlg;
-		// The version text is composed here: a version info block would show it
-		// as well, but rc.exe cannot build that string from the numeric macros.
-		const std::wstring text = L"Shift Switch, Version " L"" VERSION_STRING;
+		const std::wstring version = GetExecutableVersionString();
+		const std::wstring text = L"Shift Switch, Version " + version;
 		SetDlgItemTextW(hDlg, IDC_VERSION_TEXT, text.c_str());
 
 		SYSTEMTIME st = {};
